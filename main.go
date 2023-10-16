@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hi there")
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 
 	err := godotenv.Load()
@@ -21,9 +20,6 @@ func main() {
 		panic(err)
 	}
 	connectionURI := os.Getenv("mongo_uri")
-	if err != nil {
-		panic(err)
-	}
 
 	opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
 	// Create a new client and connect to the server
