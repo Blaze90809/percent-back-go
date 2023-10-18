@@ -13,19 +13,19 @@ import (
 )
 
 type Race struct {
-    ID          primitive.ObjectID `bson:"_id"`
-    RaceName    string             `bson:"raceName"`
-    RaceDate    string          `bson:"raceDate"`
-    RaceDistance float64                `bson:"raceDistance"`
-    PercentBack float64            `bson:"percentBack"`
+	ID           primitive.ObjectID `bson:"_id"`
+	RaceName     string             `bson:"raceName"`
+	RaceDate     string             `bson:"raceDate"`
+	RaceDistance float64            `bson:"raceDistance"`
+	PercentBack  float64            `bson:"percentBack"`
 }
 
 type CreateRace struct {
-    RaceName     string `json:"raceName"`
-    RaceDate     string `json:"raceDate"`
-    RaceDistance float64 `json:"raceDistance"`
-    PercentBack  float64 `json:"percentBack"`
-    UserID       string `json:"userId"`
+	RaceName     string             `json:"raceName" bson:"raceName"`
+	RaceDate     string             `json:"raceDate" bson:"raceDate"`
+	RaceDistance float64            `json:"raceDistance" bson:"raceDistance"`
+	PercentBack  float64            `json:"percentBack" bson:"percentBack"`
+	UserID       primitive.ObjectID `json:"userId" bson:"userId"`
 }
 
 func NewRouter() {
@@ -53,13 +53,13 @@ func NewRouter() {
 		}
 
 		objectId, err := primitive.ObjectIDFromHex(id)
-		if err != nil{
-    		panic(err)
+		if err != nil {
+			panic(err)
 		}
 
 		coll, err := client.Database("percent-back-app").Collection("races").Find(context.TODO(), bson.M{"userId": objectId})
-		if err != nil{
-    		panic(err)
+		if err != nil {
+			panic(err)
 		}
 		defer coll.Close(context.TODO())
 
@@ -95,13 +95,49 @@ func NewRouter() {
 		if err != nil {
 			panic(err)
 		}
-	
+
 		coll := client.Database("percent-back-app").Collection("races")
-		if err != nil{
-    		panic(err)
+		if err != nil {
+			panic(err)
 		}
+
 		doc := CreateRace{RaceName: race.RaceName, RaceDate: race.RaceDate, RaceDistance: race.RaceDistance, PercentBack: race.PercentBack, UserID: race.UserID}
 		result, err := coll.InsertOne(context.TODO(), doc)
+		if err != nil {
+			panic(err)
+		}
+
+		c.JSON(200, result)
+	})
+
+	e.DELETE("/races/delete/:id", func(c *gin.Context) {
+		id := c.Param("id")
+
+		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+		err := godotenv.Load()
+		if err != nil {
+			panic(err)
+		}
+		connectionURI := os.Getenv("mongo_uri")
+
+		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
+		// Create a new client and connect to the server
+		client, err := mongo.Connect(context.TODO(), opts)
+		if err != nil {
+			panic(err)
+		}
+
+		objectId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			panic(err)
+		}
+
+		coll := client.Database("percent-back-app").Collection("races")
+		if err != nil {
+			panic(err)
+		}
+
+		result, err := coll.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 		if err != nil {
 			panic(err)
 		}
