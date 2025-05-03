@@ -10,6 +10,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/crypto/bcrypt"
+	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 func usersRoutes(e *gin.Engine) {
@@ -39,9 +42,6 @@ func usersRoutes(e *gin.Engine) {
 		}
 
 		coll := client.Database("percent-back-app").Collection("users")
-		if err != nil {
-			panic(err)
-		}
 
 		doc := models.RegisterUser{Username: user.Username, Password: user.Password}
 		result, err := coll.InsertOne(context.TODO(), doc)
@@ -54,13 +54,13 @@ func usersRoutes(e *gin.Engine) {
 
 	e.POST("/login", func(c *gin.Context) {
 		var user models.RegisterUser
-		err := c.Bind(&user)
+		err := c.BindJSON(&user)
 		if err != nil {
 			panic(err)
 		}
 
 		if user.Username == "" || user.Password == "" {
-			panic("User needs to enter bot ha username and a password")
+			panic("User needs to enter both a username and a password")
 		}
 
 		connectionURI := os.Getenv("mongo_uri")
@@ -77,15 +77,41 @@ func usersRoutes(e *gin.Engine) {
 			panic(err)
 		}
 
-		coll, err := client.Database("percent-back-app").Collection("users").Find(context.TODO(), bson.M{"username": user.Username})
+		var authUser models.User
+		err = client.Database("percent-back-app").Collection("users").FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&authUser)
+		if err != nil {
+			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			return
+		}
+		if user.Username != authUser.Username {
+			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			return
+		}
+		err = bcrypt.CompareHashAndPassword([]byte(authUser.Password), []byte(user.Password))
+		if err != nil {
+			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			return
+		}
+
+		claims := models.Claims{
+			UserID: authUser.ID,
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer: "percent-back-app",
+				Subject: authUser.Username,
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // Token valid for 24 hours
+			},
+		}
+	
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	
+		// secretKey := []byte(os.Getenv("JWT_SECRET_KEY")) Todo: Implement this.
+		secretKey := "test123" // Replace with your actual secret key
+		signedToken, err := token.SignedString([]byte(secretKey))
 		if err != nil {
 			panic(err)
 		}
-		defer coll.Close(context.TODO())
-		// for coll.Next(context.TODO()) {
-		// 	var user
-		// }
 
+		c.JSON(200, signedToken)
 	})
 
 }

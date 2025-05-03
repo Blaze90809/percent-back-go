@@ -14,6 +14,7 @@ func NewRouter() {
 	})
 
 	racesRoutes(e)
+	usersRoutes(e)
 
 	err := e.Run()
 	if err != nil {
