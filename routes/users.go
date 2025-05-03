@@ -21,24 +21,28 @@ func usersRoutes(e *gin.Engine) {
 
 		err := c.Bind(&user)
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		if user.Username == "" || user.Password == "" {
-			panic("User needs to enter both a username and a password")
+			c.JSON(401, gin.H{"error": "User needs to enter both a username and a password"})
+			return
 		}
 
 		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 		err = godotenv.Load()
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 		connectionURI := os.Getenv("mongo_uri")
 
 		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
 		client, err := mongo.Connect(context.TODO(), opts)
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		coll := client.Database("percent-back-app").Collection("users")
@@ -46,7 +50,8 @@ func usersRoutes(e *gin.Engine) {
 		doc := models.RegisterUser{Username: user.Username, Password: user.Password}
 		result, err := coll.InsertOne(context.TODO(), doc)
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		c.JSON(200, result)
@@ -56,31 +61,35 @@ func usersRoutes(e *gin.Engine) {
 		var user models.RegisterUser
 		err := c.BindJSON(&user)
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		if user.Username == "" || user.Password == "" {
-			panic("User needs to enter both a username and a password")
+			c.JSON(401, gin.H{"error": "User needs to enter both a username and a password"})
+			return
 		}
 
 		connectionURI := os.Getenv("mongo_uri")
 		serverApi := options.ServerAPI(options.ServerAPIVersion1)
 		err = godotenv.Load()
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverApi)
 
 		client, err := mongo.Connect(context.TODO(), opts)
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		var authUser models.User
 		err = client.Database("percent-back-app").Collection("users").FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&authUser)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			c.JSON(401, gin.H{"error": err.Error()})
 			return
 		}
 		if user.Username != authUser.Username {
@@ -89,7 +98,7 @@ func usersRoutes(e *gin.Engine) {
 		}
 		err = bcrypt.CompareHashAndPassword([]byte(authUser.Password), []byte(user.Password))
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			c.JSON(401, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -108,7 +117,8 @@ func usersRoutes(e *gin.Engine) {
 		secretKey := "test123" // Replace with your actual secret key
 		signedToken, err := token.SignedString([]byte(secretKey))
 		if err != nil {
-			panic(err)
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
 
 		c.JSON(200, signedToken)
