@@ -4,8 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
 func NewRouter() {
 	e := gin.Default()
 
@@ -15,6 +13,7 @@ func NewRouter() {
 
 	racesRoutes(e)
 	usersRoutes(e)
+	loginRoutes(e)
 
 	err := e.Run()
 	if err != nil {
