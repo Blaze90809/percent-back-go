@@ -18,8 +18,12 @@ import (
 func racesRoutes(e *gin.Engine) {
 	rg := e.Group("/races", authMiddleware())
 
-	rg.GET("/:objectId", func(c *gin.Context) {
-		id := c.Param("objectId")
+	rg.GET("/", func(c *gin.Context) {
+		userId, exists := c.Get("userId")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+			return
+		}
 
 		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 		err := godotenv.Load()
@@ -37,13 +41,7 @@ func racesRoutes(e *gin.Engine) {
 			return
 		}
 
-		objectId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		coll, err := client.Database("percent-back-app").Collection("races").Find(context.TODO(), bson.M{"userId": objectId})
+		coll, err := client.Database("percent-back-app").Collection("races").Find(context.TODO(), bson.M{"userId": userId})
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -70,6 +68,14 @@ func racesRoutes(e *gin.Engine) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
+		// Get userId from context, set by authMiddleware
+		userId, exists := c.Get("userId")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+			return
+		}
+		race.UserID = userId.(primitive.ObjectID) // Assign the authenticated user's ID
 
 		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 		err = godotenv.Load()
@@ -106,6 +112,12 @@ func racesRoutes(e *gin.Engine) {
 	rg.DELETE("/delete/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
+		userId, exists := c.Get("userId")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+			return
+		}
+
 		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 		err := godotenv.Load()
 		if err != nil {
@@ -124,13 +136,21 @@ func racesRoutes(e *gin.Engine) {
 
 		objectId, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race ID"})
 			return
 		}
 
 		coll := client.Database("percent-back-app").Collection("races")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Verify that the race belongs to the authenticated user
+		var race models.Race
+		err = coll.FindOne(context.TODO(), bson.M{"_id": objectId, "userId": userId}).Decode(&race)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Race not found or not authorized to delete"})
 			return
 		}
 
