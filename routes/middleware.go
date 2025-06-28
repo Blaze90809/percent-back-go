@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"os"
+	"react-app-golang/models"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ func authMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 		})
 
@@ -30,6 +31,14 @@ func authMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		claims, ok := token.Claims.(*models.Claims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
+
+		c.Set("userId", claims.UserID)
 		c.Next()
 	}
 }

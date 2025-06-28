@@ -5,8 +5,8 @@ import ("go.mongodb.org/mongo-driver/bson/primitive"
 "github.com/golang-jwt/jwt/v5")
 
 type RegisterUser struct {
-	Username 	string 	`json:"Username" bson:"Username"`
-	Password	string	`json:"Password" bson:"Password"`
+	Username 	string 	`json:"username" bson:"username"`
+	Password	string	`json:"password" bson:"password"`
 }
 
 type User struct {
@@ -15,6 +15,7 @@ type User struct {
 	Password string             `bson:"password"`
 	V        int                `bson:"__v"`
 }
+
 
 type Claims struct {
 	UserID  primitive.ObjectID  `json:"userId"`
