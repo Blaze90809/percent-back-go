@@ -8,14 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func loginRoutes(e *gin.Engine) {
+func loginRoutes(e *gin.Engine, client *mongo.Client) {
 	e.POST("/login", func(c *gin.Context) {
 		var user models.RegisterUser
 		err := c.BindJSON(&user)
@@ -26,22 +24,6 @@ func loginRoutes(e *gin.Engine) {
 
 		if user.Username == "" || user.Password == "" {
 			c.JSON(401, gin.H{"error": "User needs to enter both a username and a password"})
-			return
-		}
-
-		connectionURI := os.Getenv("mongo_uri")
-		serverApi := options.ServerAPI(options.ServerAPIVersion1)
-		err = godotenv.Load()
-		if err != nil {
-			c.JSON(401, gin.H{"error": err.Error()})
-			return
-		}
-
-		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverApi)
-
-		client, err := mongo.Connect(context.TODO(), opts)
-		if err != nil {
-			c.JSON(401, gin.H{"error": err.Error()})
 			return
 		}
 

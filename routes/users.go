@@ -2,17 +2,14 @@ package routes
 
 import (
 	"context"
-	"os"
 	"react-app-golang/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func usersRoutes(e *gin.Engine) {
+func usersRoutes(e *gin.Engine, client *mongo.Client) {
 	e.POST("/register", func(c *gin.Context) {
 		var user models.RegisterUser
 
@@ -30,21 +27,6 @@ func usersRoutes(e *gin.Engine) {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to hash password"})
-			return
-		}
-
-		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-		err = godotenv.Load()
-		if err != nil {
-			c.JSON(401, gin.H{"error": err.Error()})
-			return
-		}
-		connectionURI := os.Getenv("mongo_uri")
-
-		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
-		client, err := mongo.Connect(context.TODO(), opts)
-		if err != nil {
-			c.JSON(401, gin.H{"error": err.Error()})
 			return
 		}
 
