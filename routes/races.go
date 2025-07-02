@@ -3,41 +3,22 @@ package routes
 import (
 	"context"
 	"net/http"
-	"os"
 
 	"react-app-golang/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func racesRoutes(e *gin.Engine) {
+func racesRoutes(e *gin.Engine, client *mongo.Client) {
 	rg := e.Group("/races", authMiddleware())
 
 	rg.GET("/", func(c *gin.Context) {
 		userId, exists := c.Get("userId")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
-			return
-		}
-
-		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-		err := godotenv.Load()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		connectionURI := os.Getenv("mongo_uri")
-
-		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
-		// Create a new client and connect to the server
-		client, err := mongo.Connect(context.TODO(), opts)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -77,27 +58,7 @@ func racesRoutes(e *gin.Engine) {
 		}
 		race.UserID = userId.(primitive.ObjectID) // Assign the authenticated user's ID
 
-		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-		err = godotenv.Load()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		connectionURI := os.Getenv("mongo_uri")
-
-		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
-		// Create a new client and connect to the server
-		client, err := mongo.Connect(context.TODO(), opts)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
 		coll := client.Database("percent-back-app").Collection("races")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
 
 		doc := models.CreateRace{RaceName: race.RaceName, RaceDate: race.RaceDate, RaceDistance: race.RaceDistance, PercentBack: race.PercentBack, UserID: race.UserID}
 		result, err := coll.InsertOne(context.TODO(), doc)
@@ -118,22 +79,6 @@ func racesRoutes(e *gin.Engine) {
 			return
 		}
 
-		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-		err := godotenv.Load()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		connectionURI := os.Getenv("mongo_uri")
-
-		opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
-		// Create a new client and connect to the server
-		client, err := mongo.Connect(context.TODO(), opts)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
 		objectId, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race ID"})
@@ -141,10 +86,6 @@ func racesRoutes(e *gin.Engine) {
 		}
 
 		coll := client.Database("percent-back-app").Collection("races")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
 
 		// Verify that the race belongs to the authenticated user
 		var race models.Race
