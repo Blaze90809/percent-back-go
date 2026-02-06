@@ -34,7 +34,18 @@ func NewRouter() {
 	// The React build puts assets in a nested 'static' folder. 
 	// We point the /static route to ./static/static to match the browser's requests.
 	e.Static("/static", "./static/static")
-	e.StaticFile("/", "./static/index.html")
+
+	// Middleware to prevent caching of index.html
+	noCache := func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		c.Header("Pragma", "no-cache")
+		c.Header("Expires", "0")
+		c.Next()
+	}
+
+	e.GET("/", noCache, func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
 	e.StaticFile("/favicon.ico", "./static/favicon.ico")
 	e.StaticFile("/manifest.json", "./static/manifest.json")
 	e.StaticFile("/robots.txt", "./static/robots.txt")
@@ -50,7 +61,7 @@ func NewRouter() {
 		passwordResetRoutes(api, client)
 	}
 
-	e.NoRoute(func(c *gin.Context) {
+	e.NoRoute(noCache, func(c *gin.Context) {
 		c.File("./static/index.html")
 	})
 
