@@ -27,6 +27,17 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>Nordic Race Track</title>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+            console.log('Service Worker unregistered');
+          }
+          if(registrations.length > 0) window.location.reload();
+        });
+      }
+    </script>
   </head>
   <body style="background-image: url('%PUBLIC_URL%/20230313_172031.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
     <noscript>You need to enable JavaScript to run this app.</noscript>
