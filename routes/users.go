@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func usersRoutes(e *gin.Engine, client *mongo.Client) {
+func usersRoutes(e *gin.RouterGroup, client *mongo.Client) {
 	e.POST("/register", func(c *gin.Context) {
 		var user models.RegisterUser
 

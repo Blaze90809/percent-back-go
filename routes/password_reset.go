@@ -17,7 +17,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func passwordResetRoutes(e *gin.Engine, client *mongo.Client) {
+func passwordResetRoutes(e *gin.RouterGroup, client *mongo.Client) {
 	e.POST("/forgot-password", func(c *gin.Context) {
 		var body struct {
 			Email string `json:"email"`
@@ -63,7 +63,7 @@ func passwordResetRoutes(e *gin.Engine, client *mongo.Client) {
 		ms := mailersend.NewMailersend(os.Getenv("MAILERSEND_API_KEY"))
 
 		from := mailersend.From{
-			Email: "info@trial-z3m5jgrmd34gpyo6.mlsender.net", // Replace with your verified sender email
+			Email: "blaze@nordicracetrack.com", // Replace with your verified sender email
 		}
 
 		to := []mailersend.Recipient{
@@ -96,14 +96,22 @@ func passwordResetRoutes(e *gin.Engine, client *mongo.Client) {
 		}
 
 		if err := c.BindJSON(&body); err != nil {
+			fmt.Println("Error binding JSON:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		if body.Token == "" || body.Password == "" {
+			fmt.Println("Token or Password missing in request body")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token and password are required"})
 			return
 		}
 
 		var user models.User
 		coll := client.Database("percent-back-app").Collection("users")
-		err := coll.FindOne(context.TODO(), bson.M{"passwordResetToken": body.Token, "passwordResetExpires": bson.M{"gt": time.Now()}}).Decode(&user)
+		err := coll.FindOne(context.TODO(), bson.M{"passwordResetToken": body.Token, "passwordResetExpires": bson.M{"$gt": time.Now()}}).Decode(&user)
 		if err != nil {
+			fmt.Println("Error finding user with token:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired token"})
 			return
 		}

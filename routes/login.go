@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func loginRoutes(e *gin.Engine, client *mongo.Client) {
+func loginRoutes(e *gin.RouterGroup, client *mongo.Client) {
 	e.POST("/login", func(c *gin.Context) {
 		var user models.RegisterUser
 		err := c.BindJSON(&user)
