@@ -15,10 +15,7 @@ import (
 func main() {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
+	_ = godotenv.Load()
 	connectionURI := os.Getenv("mongo_uri")
 
 	opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)

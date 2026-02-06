@@ -1,3 +1,5 @@
 .env
 static/
 .DS_Store
+frontend/node_modules/
+frontend/build/

@@ -13,10 +13,8 @@ import (
 )
 
 func NewRouter() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// Only load .env in development. In production (DigitalOcean), environment variables are set directly.
+	_ = godotenv.Load()
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	connectionURI := os.Getenv("mongo_uri")
@@ -54,7 +52,12 @@ func NewRouter() {
 		c.File("./static/index.html")
 	})
 
-	err = e.Run()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	err = e.Run(":" + port)
 	if err != nil {
 		panic(err)
 	}
