@@ -2,7 +2,6 @@ package routes
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
