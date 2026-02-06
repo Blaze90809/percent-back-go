@@ -27,11 +27,13 @@ func NewRouter() {
 	e := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", "https://*.ondigitalocean.app"} // Allow local and DO domains
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	e.Use(cors.New(config))
 
-	e.Static("/static", "./static")
+	// The React build puts assets in a nested 'static' folder. 
+	// We point the /static route to ./static/static to match the browser's requests.
+	e.Static("/static", "./static/static")
 	e.StaticFile("/", "./static/index.html")
 	e.StaticFile("/favicon.ico", "./static/favicon.ico")
 	e.StaticFile("/manifest.json", "./static/manifest.json")
