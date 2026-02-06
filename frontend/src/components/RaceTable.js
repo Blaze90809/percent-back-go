@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Container, Typography, Box, Button, Card, CardContent, TableSortLabel } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Container, Typography, Box, Button, Card, CardContent, TableSortLabel, TextField } from '@mui/material';
 
 const RaceTable = () => {
   const [races, setRaces] = useState([]);
+  const [filterText, setFilterText] = useState('');
   const [error, setError] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'RaceDate', direction: 'desc' });
 
@@ -59,6 +60,14 @@ const RaceTable = () => {
             <Typography variant="h4" component="h1" gutterBottom>
               Race Data
             </Typography>
+            <TextField
+              fullWidth
+              label="Filter by Race Name"
+              variant="outlined"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              sx={{ mb: 3 }}
+            />
             {error && <Typography color="error">{error}</Typography>}
             <TableContainer component={Paper}>
               <Table>
@@ -100,7 +109,11 @@ const RaceTable = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {races.map((race) => (
+                  {races
+                    .filter(race => 
+                      race.RaceName.toLowerCase().includes(filterText.toLowerCase())
+                    )
+                    .map((race) => (
                     <TableRow key={race.ID}>
                       <TableCell>{race.RaceName}</TableCell>
                       <TableCell>{race.RaceDate}</TableCell>

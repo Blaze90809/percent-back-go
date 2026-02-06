@@ -6,10 +6,17 @@ import { Container, Typography, Box, Card, CardContent, Select, MenuItem, FormCo
 const RaceChart = () => {
   const [originalRaces, setOriginalRaces] = useState([]);
   const [filteredRaces, setFilteredRaces] = useState([]);
+  const [chartData, setChartData] = useState([]);
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [averagePercentBack, setAveragePercentBack] = useState(null);
   const [error, setError] = useState('');
+
+  const getSeason = (dateStr) => {
+    const date = new Date(dateStr);
+    // If month is July (6) or later, it belongs to the next year's season
+    return date.getMonth() >= 6 ? date.getFullYear() + 1 : date.getFullYear();
+  };
 
   useEffect(() => {
     const fetchRaces = async () => {
@@ -21,7 +28,7 @@ const RaceChart = () => {
         setOriginalRaces(sortedRaces);
         setFilteredRaces(sortedRaces);
 
-        const uniqueYears = [...new Set(sortedRaces.map(race => new Date(race.RaceDate).getFullYear()))];
+        const uniqueYears = [...new Set(sortedRaces.map(race => getSeason(race.RaceDate)))].sort((a, b) => b - a);
         setYears(uniqueYears);
 
         if (sortedRaces.length > 0) {
@@ -33,6 +40,36 @@ const RaceChart = () => {
     };
     fetchRaces();
   }, []);
+
+  useEffect(() => {
+    if (filteredRaces.length > 0) {
+      // 1. Calculate stats (sum and count) for each season
+      const seasonStats = {};
+      filteredRaces.forEach(race => {
+        const season = getSeason(race.RaceDate);
+        if (!seasonStats[season]) {
+          seasonStats[season] = { sum: 0, count: 0 };
+        }
+        seasonStats[season].sum += race.PercentBack;
+        seasonStats[season].count += 1;
+      });
+
+      // 2. Assign the season average as the Trend value for each race
+      const dataWithTrend = filteredRaces.map((race) => {
+        const season = getSeason(race.RaceDate);
+        const stats = seasonStats[season];
+        const seasonAvg = stats.sum / stats.count;
+
+        return {
+          ...race,
+          Trend: parseFloat(seasonAvg.toFixed(2))
+        };
+      });
+      setChartData(dataWithTrend);
+    } else {
+      setChartData([]);
+    }
+  }, [filteredRaces]);
 
   const calculateAverage = (races) => {
     if (races.length === 0) {
@@ -51,7 +88,7 @@ const RaceChart = () => {
       setFilteredRaces(originalRaces);
       calculateAverage(originalRaces);
     } else {
-      const filtered = originalRaces.filter(race => new Date(race.RaceDate).getFullYear() === year);
+      const filtered = originalRaces.filter(race => getSeason(race.RaceDate) === year);
       setFilteredRaces(filtered);
       calculateAverage(filtered);
     }
@@ -75,12 +112,12 @@ const RaceChart = () => {
             
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <FormControl sx={{ minWidth: 120, mr: 2 }}>
-                <InputLabel id="year-select-label">Year</InputLabel>
+                <InputLabel id="year-select-label">Season</InputLabel>
                 <Select
                   labelId="year-select-label"
                   id="year-select"
                   value={selectedYear}
-                  label="Year"
+                  label="Season"
                   onChange={handleYearChange}
                 >
                   <MenuItem value="">
@@ -101,13 +138,14 @@ const RaceChart = () => {
             )}
 
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={filteredRaces}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="RaceDate" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="PercentBack" stroke="#8884d8" />
+                <Line type="monotone" dataKey="PercentBack" stroke="#8884d8" name="Percent Back" />
+                <Line type="monotone" dataKey="Trend" stroke="#82ca9d" dot={false} strokeDasharray="5 5" name="Trend Line" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
