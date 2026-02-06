@@ -40,5 +40,5 @@ func main() {
 	}
 	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
-	server.NewRouter()
+		server.NewRouter()
 }

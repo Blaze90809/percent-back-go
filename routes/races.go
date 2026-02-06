@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func racesRoutes(e *gin.Engine, client *mongo.Client) {
+func racesRoutes(e *gin.RouterGroup, client *mongo.Client) {
 	rg := e.Group("/races", authMiddleware())
 
 	rg.GET("/", func(c *gin.Context) {

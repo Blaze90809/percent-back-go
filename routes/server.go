@@ -34,14 +34,25 @@ func NewRouter() {
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	e.Use(cors.New(config))
 
-	e.GET("/", func(c *gin.Context) {
-		c.String(200, "Nordic percent back.")
-	})
+	e.Static("/static", "./static")
+	e.StaticFile("/", "./static/index.html")
+	e.StaticFile("/favicon.ico", "./static/favicon.ico")
+	e.StaticFile("/manifest.json", "./static/manifest.json")
+	e.StaticFile("/robots.txt", "./static/robots.txt")
+	e.StaticFile("/logo192.png", "./static/logo192.png")
+	e.StaticFile("/logo512.png", "./static/logo512.png")
 
-	racesRoutes(e, client)
-	usersRoutes(e, client)
-	loginRoutes(e, client)
-	passwordResetRoutes(e, client)
+	api := e.Group("/api")
+	{
+		racesRoutes(api, client)
+		usersRoutes(api, client)
+		loginRoutes(api, client)
+		passwordResetRoutes(api, client)
+	}
+
+	e.NoRoute(func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
 
 	err = e.Run()
 	if err != nil {
