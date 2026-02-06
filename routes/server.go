@@ -40,6 +40,7 @@ func NewRouter() {
 	e.StaticFile("/robots.txt", "./static/robots.txt")
 	e.StaticFile("/logo192.png", "./static/logo192.png")
 	e.StaticFile("/logo512.png", "./static/logo512.png")
+	e.StaticFile("/20230313_172031.jpg", "./static/20230313_172031.jpg")
 
 	api := e.Group("/api")
 	{
