@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mailersend/mailersend-go"
+	"github.com/resend/resend-go/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -41,6 +41,7 @@ func passwordResetRoutes(e *gin.RouterGroup, client *mongo.Client) {
 		tokenBytes := make([]byte, 32)
 		_, err = rand.Read(tokenBytes)
 		if err != nil {
+						fmt.Println(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
 		}
@@ -60,28 +61,20 @@ func passwordResetRoutes(e *gin.RouterGroup, client *mongo.Client) {
 			return
 		}
 
-		ms := mailersend.NewMailersend(os.Getenv("MAILERSEND_API_KEY"))
-
-		from := mailersend.From{
-			Email: "blaze@nordicracetrack.com", // Replace with your verified sender email
-		}
-
-		to := []mailersend.Recipient{
-			{
-				Email: user.Username,
-			},
-		}
+		client := resend.NewClient(os.Getenv("RESEND_API_KEY"))
 
 		resetURL := "https://nordicracetrack.com/reset-password/" + resetToken
 
-		message := ms.Email.NewMessage()
-		message.SetFrom(from)
-		message.SetRecipients(to)
-		message.SetSubject("Password Reset Request")
-		message.SetHTML("<strong>Click the link to reset your password:</strong> <a href=\"" + resetURL + "\">Reset Password</a>")
+		params := &resend.SendEmailRequest{
+			From:    "blaze@nordicracetrack.com",
+			To:      []string{user.Username},
+			Subject: "Password Reset Request",
+			Html:    "<strong>Click the link to reset your password:</strong> <a href=\"" + resetURL + "\">Reset Password</a>",
+		}
 
-		_, err = ms.Email.Send(context.Background(), message)
+		_, err = client.Emails.Send(params)
 		if err != nil {
+			fmt.Println(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
 			return
 		}
