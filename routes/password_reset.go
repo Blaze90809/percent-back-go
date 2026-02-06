@@ -72,7 +72,7 @@ func passwordResetRoutes(e *gin.RouterGroup, client *mongo.Client) {
 			},
 		}
 
-		resetURL := "http://localhost:3000/reset-password/" + resetToken
+		resetURL := "https://nordicracetrack.com/reset-password/" + resetToken
 
 		message := ms.Email.NewMessage()
 		message.SetFrom(from)
