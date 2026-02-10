@@ -118,7 +118,7 @@ const RaceTable = () => {
                       <TableCell>{race.RaceName}</TableCell>
                       <TableCell>{race.RaceDate}</TableCell>
                       <TableCell>{race.RaceDistance}</TableCell>
-                      <TableCell>{race.PercentBack}</TableCell>
+                      <TableCell>{Number(race.PercentBack).toFixed(2)}</TableCell>
                       <TableCell>
                         <Button 
                           variant="outlined" 

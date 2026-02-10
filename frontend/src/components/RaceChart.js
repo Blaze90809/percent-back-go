@@ -62,6 +62,7 @@ const RaceChart = () => {
 
         return {
           ...race,
+          PercentBack: parseFloat(Number(race.PercentBack).toFixed(2)),
           Trend: parseFloat(seasonAvg.toFixed(2))
         };
       });
