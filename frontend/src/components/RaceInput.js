@@ -11,6 +11,17 @@ const RaceInput = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const formatTime = (value) => {
+    const digits = value.replace(/\D/g, '').slice(0, 6);
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 4) {
+      return `${digits.slice(0, digits.length - 2)}:${digits.slice(digits.length - 2)}`;
+    } else {
+      return `${digits.slice(0, digits.length - 4)}:${digits.slice(digits.length - 4, digits.length - 2)}:${digits.slice(digits.length - 2)}`;
+    }
+  };
+
   const calculatePercentBack = () => {
     const userTimeSeconds = parseTimeToSeconds(userRaceTime);
     const firstPlaceTimeSeconds = parseTimeToSeconds(firstPlaceTime);
@@ -117,7 +128,7 @@ const RaceInput = () => {
                 label="Your Race Time (MM:SS or HH:MM:SS)"
                 name="userRaceTime"
                 value={userRaceTime}
-                onChange={(e) => setUserRaceTime(e.target.value)}
+                onChange={(e) => setUserRaceTime(formatTime(e.target.value))}
               />
               <TextField
                 margin="normal"
@@ -127,7 +138,7 @@ const RaceInput = () => {
                 label="First Place Finisher Time (MM:SS or HH:MM:SS)"
                 name="firstPlaceTime"
                 value={firstPlaceTime}
-                onChange={(e) => setFirstPlaceTime(e.target.value)}
+                onChange={(e) => setFirstPlaceTime(formatTime(e.target.value))}
               />
               {error && <Typography color="error">{error}</Typography>}
               {success && <Typography color="success">{success}</Typography>}
