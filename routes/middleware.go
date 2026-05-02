@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"react-app-golang/models"
@@ -22,6 +23,10 @@ func authMiddleware() gin.HandlerFunc {
 		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
 
 		token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
+			// Validate the algorithm is HMAC
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 		})
 

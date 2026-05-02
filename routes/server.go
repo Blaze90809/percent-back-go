@@ -15,8 +15,16 @@ func NewRouter() {
 	// Only load .env in development. In production (DigitalOcean), environment variables are set directly.
 	_ = godotenv.Load()
 
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	// Validate environment variables
+	if os.Getenv("JWT_SECRET_KEY") == "" {
+		panic("JWT_SECRET_KEY is not set")
+	}
 	connectionURI := os.Getenv("mongo_uri")
+	if connectionURI == "" {
+		panic("mongo_uri is not set")
+	}
+
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(connectionURI).SetServerAPIOptions(serverAPI)
 
 	client, err := mongo.Connect(context.TODO(), opts)
@@ -25,6 +33,14 @@ func NewRouter() {
 	}
 
 	e := gin.Default()
+
+	// Security Headers Middleware
+	e.Use(func(c *gin.Context) {
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+		c.Next()
+	})
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000", "https://*.ondigitalocean.app"} // Allow local and DO domains
