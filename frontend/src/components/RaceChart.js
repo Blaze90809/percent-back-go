@@ -38,7 +38,6 @@ const RaceChart = () => {
 
         if (sortedRaces.length > 0) {
           // Initial calculation
-          calculateAverage(sortedRaces);
         }
       } catch (err) {
         setError('Failed to fetch races');
@@ -91,8 +90,10 @@ const RaceChart = () => {
         };
       });
       setChartData(dataWithTrend);
+      calculateAverage(filteredRaces); // Calculate overall average when filters change
     } else {
       setChartData([]);
+      setAveragePercentBack(null); // Reset average if no races are filtered
     }
   }, [filteredRaces]);
 
