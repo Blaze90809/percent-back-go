@@ -134,7 +134,7 @@ const RaceChart = () => {
                 label="Filter by Race Name"
                 value={filterRaceName}
                 onChange={(e) => handleRaceNameChange(e)}
-                sx={{ minWidth: 250 }}
+                sx={{ minWidth: 250, mr: 2 }}
               />
               <FormControl sx={{ minWidth: 120, mr: 2 }}>
                 <InputLabel id="year-select-label">Season</InputLabel>
