@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Container, Typography, Box, Card, CardContent, Select, MenuItem, FormControl, InputLabel, Button } from '@mui/material';
+import { Container, Typography, Box, Card, CardContent, Select, MenuItem, FormControl, InputLabel, Button, TextField } from '@mui/material';
 
 const RaceChart = () => {
   const [originalRaces, setOriginalRaces] = useState([]);
@@ -10,6 +10,7 @@ const RaceChart = () => {
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [averagePercentBack, setAveragePercentBack] = useState(null);
+  const [filterRaceName, setFilterRaceName] = useState('');
   const [error, setError] = useState('');
 
   const getSeason = (dateStr) => {
@@ -28,10 +29,15 @@ const RaceChart = () => {
         setOriginalRaces(sortedRaces);
         setFilteredRaces(sortedRaces);
 
+        // Initialize filters
+        setFilterRaceName('');
+        setSelectedYear('');
+
         const uniqueYears = [...new Set(sortedRaces.map(race => getSeason(race.RaceDate)))].sort((a, b) => b - a);
         setYears(uniqueYears);
 
         if (sortedRaces.length > 0) {
+          // Initial calculation
           calculateAverage(sortedRaces);
         }
       } catch (err) {
@@ -40,6 +46,24 @@ const RaceChart = () => {
     };
     fetchRaces();
   }, []);
+
+  const handleRaceNameChange = (event) => {
+    setFilterRaceName(event.target.value);
+  };
+
+  useEffect(() => {
+    let currentRaces = originalRaces;
+    // 1. Filter by Year
+    if (selectedYear) {
+      currentRaces = currentRaces.filter(race => getSeason(race.RaceDate) === selectedYear);
+    }
+    // 2. Filter by Race Name
+    if (filterRaceName) {
+      const lowerCaseFilter = filterRaceName.toLowerCase();
+      currentRaces = currentRaces.filter(race => race.RaceName.toLowerCase().includes(lowerCaseFilter));
+    }
+    setFilteredRaces(currentRaces);
+  }, [originalRaces, selectedYear, filterRaceName]);
 
   useEffect(() => {
     if (filteredRaces.length > 0) {
@@ -84,21 +108,15 @@ const RaceChart = () => {
   const handleYearChange = (event) => {
     const year = event.target.value;
     setSelectedYear(year);
-
-    if (year === '') {
-      setFilteredRaces(originalRaces);
-      calculateAverage(originalRaces);
-    } else {
-      const filtered = originalRaces.filter(race => getSeason(race.RaceDate) === year);
-      setFilteredRaces(filtered);
-      calculateAverage(filtered);
-    }
+    // The filtering logic is now handled by the useEffect hook above,
+    // which depends on selectedYear, so we just update the state.
   };
 
   const handleReset = () => {
     setSelectedYear('');
-    setFilteredRaces(originalRaces);
-    calculateAverage(originalRaces);
+    setFilterRaceName('');
+    // The filtering logic is now handled by the useEffect hook above,
+    // which depends on selectedYear and filterRaceName, so we just update the state.
   };
 
   return (
@@ -112,6 +130,12 @@ const RaceChart = () => {
             {error && <Typography color="error">{error}</Typography>}
             
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <TextField
+                label="Filter by Race Name"
+                value={filterRaceName}
+                onChange={(e) => handleRaceNameChange(e)}
+                sx={{ minWidth: 250 }}
+              />
               <FormControl sx={{ minWidth: 120, mr: 2 }}>
                 <InputLabel id="year-select-label">Season</InputLabel>
                 <Select
