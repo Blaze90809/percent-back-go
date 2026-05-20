@@ -70,6 +70,7 @@ func NewRouter() {
 	e.StaticFile("/20230313_172031.jpg", "./static/20230313_172031.jpg")
 
 	api := e.Group("/api")
+	api.Use(RateLimitMiddleware(GeneralLimiter))
 	{
 		racesRoutes(api, client)
 		usersRoutes(api, client)

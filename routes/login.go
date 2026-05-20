@@ -2,6 +2,8 @@ package routes
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"react-app-golang/models"
 	"time"
@@ -14,29 +16,30 @@ import (
 )
 
 func loginRoutes(e *gin.RouterGroup, client *mongo.Client) {
-	e.POST("/login", func(c *gin.Context) {
+	e.POST("/login", RateLimitMiddleware(SensitiveLimiter), func(c *gin.Context) {
 		var user models.RegisterUser
 		err := c.BindJSON(&user)
 		if err != nil {
-			c.JSON(401, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 			return
 		}
 
 		if user.Username == "" || user.Password == "" {
-			c.JSON(401, gin.H{"error": "User needs to enter both a username and a password"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Username and password are required"})
 			return
 		}
 
 		var authUser models.User
 		err = client.Database("percent-back-app").Collection("users").FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&authUser)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			fmt.Println("User lookup failed:", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 			return
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(authUser.Password), []byte(user.Password))
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 			return
 		}
 
@@ -54,10 +57,11 @@ func loginRoutes(e *gin.RouterGroup, client *mongo.Client) {
 		secretKey := os.Getenv("JWT_SECRET_KEY")
 		signedToken, err := token.SignedString([]byte(secretKey))
 		if err != nil {
-			c.JSON(500, gin.H{"error": "Failed to sign token"})
+			fmt.Println("Failed to sign JWT token:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to authenticate"})
 			return
 		}
 
-		c.JSON(200, gin.H{"token": signedToken})
+		c.JSON(http.StatusOK, gin.H{"token": signedToken})
 	})
 }
