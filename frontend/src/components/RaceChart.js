@@ -12,12 +12,19 @@ const RaceChart = () => {
   const [averagePercentBack, setAveragePercentBack] = useState(null);
   const [filterRaceName, setFilterRaceName] = useState('');
   const [error, setError] = useState('');
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const getSeason = (dateStr) => {
     const date = new Date(dateStr);
     // If month is July (6) or later, it belongs to the next year's season
     return date.getMonth() >= 6 ? date.getFullYear() + 1 : date.getFullYear();
   };
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchRaces = async () => {
@@ -35,10 +42,6 @@ const RaceChart = () => {
 
         const uniqueYears = [...new Set(sortedRaces.map(race => getSeason(race.RaceDate)))].sort((a, b) => b - a);
         setYears(uniqueYears);
-
-        if (sortedRaces.length > 0) {
-          // Initial calculation
-        }
       } catch (err) {
         setError('Failed to fetch races');
       }
@@ -109,16 +112,24 @@ const RaceChart = () => {
   const handleYearChange = (event) => {
     const year = event.target.value;
     setSelectedYear(year);
-    // The filtering logic is now handled by the useEffect hook above,
-    // which depends on selectedYear, so we just update the state.
   };
 
   const handleReset = () => {
     setSelectedYear('');
     setFilterRaceName('');
-    // The filtering logic is now handled by the useEffect hook above,
-    // which depends on selectedYear and filterRaceName, so we just update the state.
   };
+
+  const formatDate = (dateStr) => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const chartHeight = windowWidth < 600 ? 280 : 400;
 
   return (
     <Container maxWidth="lg">
@@ -130,31 +141,42 @@ const RaceChart = () => {
             </Typography>
             {error && <Typography color="error">{error}</Typography>}
             
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            {/* Responsive Filter Box */}
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              gap: 2, 
+              mb: 3
+            }}>
               <TextField
                 label="Filter by Race Name"
                 value={filterRaceName}
-                onChange={(e) => handleRaceNameChange(e)}
-                sx={{ minWidth: 250, mr: 2 }}
+                onChange={handleRaceNameChange}
+                sx={{ flexGrow: 1 }}
+                fullWidth
               />
-              <FormControl sx={{ minWidth: 120, mr: 2 }}>
-                <InputLabel id="year-select-label">Season</InputLabel>
-                <Select
-                  labelId="year-select-label"
-                  id="year-select"
-                  value={selectedYear}
-                  label="Season"
-                  onChange={handleYearChange}
-                >
-                  <MenuItem value="">
-                    <em>All</em>
-                  </MenuItem>
-                  {years.map(year => (
-                    <MenuItem key={year} value={year}>{year}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button variant="outlined" onClick={handleReset}>Reset</Button>
+              <Box sx={{ display: 'flex', gap: 2, minWidth: { xs: '100%', sm: '280px' } }}>
+                <FormControl sx={{ flexGrow: 1, minWidth: 120 }}>
+                  <InputLabel id="year-select-label">Season</InputLabel>
+                  <Select
+                    labelId="year-select-label"
+                    id="year-select"
+                    value={selectedYear}
+                    label="Season"
+                    onChange={handleYearChange}
+                  >
+                    <MenuItem value="">
+                      <em>All</em>
+                    </MenuItem>
+                    {years.map(year => (
+                      <MenuItem key={year} value={year}>{year}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button variant="outlined" onClick={handleReset} sx={{ height: '56px', minWidth: '90px' }}>
+                  Reset
+                </Button>
+              </Box>
             </Box>
 
             {averagePercentBack !== null && (
@@ -163,15 +185,21 @@ const RaceChart = () => {
               </Typography>
             )}
 
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={chartData}>
+            {/* Mobile-optimized Responsive Chart Container */}
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="RaceDate" />
-                <YAxis />
+                <XAxis 
+                  dataKey="RaceDate" 
+                  tickFormatter={formatDate} 
+                  tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }} 
+                  height={50} 
+                />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="PercentBack" stroke="#8884d8" name="Percent Back" />
-                <Line type="monotone" dataKey="Trend" stroke="#82ca9d" dot={false} strokeDasharray="5 5" name="Trend Line" />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                <Line type="monotone" dataKey="PercentBack" stroke="#8884d8" name="Percent Back" strokeWidth={2} />
+                <Line type="monotone" dataKey="Trend" stroke="#82ca9d" dot={false} strokeDasharray="5 5" name="Trend Line" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
