@@ -9,6 +9,7 @@ import RaceTable from './components/RaceTable';
 import RaceChart from './components/RaceChart';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import NotFound from './components/NotFound';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="chart" element={<RaceChart />} />
         </Route>
         <Route path="/" element={<Login />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

@@ -1,0 +1,371 @@
+:root {
+  --alpine-navy: #04292b;         /* Deepest majestic Alpine Navy (footer) */
+  --poster-sky: #e0f2f1;          /* Ice teal cream sky */
+  --athlete-cyan: #00ebfe;        /* Cyber cyan speedsuit stripe */
+  --athlete-orange: #ff7f50;      /* Vibrant sport coral */
+  --white: #ffffff;
+  --white-dim: rgba(255, 255, 255, 0.75);
+  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.not-found-container {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  background: var(--poster-sky);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: var(--font-family);
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   1. Dynamic Poster Canvas
+   ========================================================================== */
+.poster-canvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.poster-svg {
+  width: 100%;
+  max-height: 70vh;
+  filter: drop-shadow(0 15px 35px rgba(4, 41, 43, 0.12));
+  overflow: visible;
+}
+
+/* ==========================================================================
+   2. Athlete Animations (Foreground and Background)
+   ========================================================================== */
+
+/* Foreground Skier: Rich out-of-sync athletic bobbing */
+.foreground-athlete {
+  transform-origin: 325px 375px;
+  animation: skierBobFore 3.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes skierBobFore {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-2px, -8px, 0) rotate(-0.5deg);
+  }
+}
+
+/* Background Skier: Out-of-sync secondary bobbing */
+.background-athlete {
+  transform-origin: 525px 300px;
+  animation: skierBobBack 4.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes skierBobBack {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(1px, -6px, 0) rotate(0.5deg);
+  }
+}
+
+/* Ski Vibrations: Micro high-frequency slides to mimic cold snow corduroy contact */
+.ski-node {
+  animation: skiVibrate 0.18s linear infinite;
+  will-change: transform;
+}
+
+@keyframes skiVibrate {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, 0.4px, 0); }
+}
+
+/* Pole Flex/Sway: Subtle pole pushes */
+.pole-node {
+  transform-origin: top center;
+  animation: poleFlex 3.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+.background-athlete .pole-node {
+  animation: poleFlex 4.4s ease-in-out infinite;
+}
+
+@keyframes poleFlex {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(1deg); }
+}
+
+/* ==========================================================================
+   3. Goggle reflection sheen glides
+   ========================================================================== */
+.lens-sheen-group {
+  animation: glareSweep 3.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  will-change: transform;
+}
+
+.background-athlete .lens-sheen-group {
+  animation: glareSweep 3.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes glareSweep {
+  0% {
+    transform: translate3d(-100px, 0, 0);
+  }
+  35%, 100% {
+    transform: translate3d(220px, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   4. Drifting Atmosphere (Clouds & Sky)
+   ========================================================================== */
+.cloud-group-1 {
+  animation: cloudDrift1 45s linear infinite;
+  will-change: transform;
+}
+
+@keyframes cloudDrift1 {
+  0% { transform: translate3d(-150px, 0, 0); }
+  100% { transform: translate3d(850px, 0, 0); }
+}
+
+.cloud-group-2 {
+  animation: cloudDrift2 60s linear infinite;
+  will-change: transform;
+}
+
+@keyframes cloudDrift2 {
+  0% { transform: translate3d(-250px, 0, 0); }
+  100% { transform: translate3d(750px, 0, 0); }
+}
+
+/* ==========================================================================
+   5. Clean Poster Bottom Footer Banner
+   ========================================================================== */
+.poster-footer {
+  width: 100%;
+  background: var(--alpine-navy);
+  padding: 2.2rem 3rem;
+  box-sizing: border-box;
+  z-index: 5;
+  box-shadow: 0 -15px 40px rgba(4, 41, 43, 0.15);
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  gap: 2rem;
+}
+
+.text-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.footer-title {
+  font-size: 2.6rem;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  color: var(--white);
+  margin: 0;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.footer-subtitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--white-dim);
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+/* ==========================================================================
+   6. Premium Hollow Trailhead Button
+   ========================================================================== */
+.trailhead-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.95rem 2.5rem;
+  border: 2.5px solid var(--white);
+  background: transparent;
+  color: var(--white);
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.trailhead-button:hover {
+  background: var(--white);
+  color: var(--alpine-navy);
+  transform: translate3d(0, -2px, 0);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.25);
+}
+
+.trailhead-button:active {
+  transform: translate3d(0, 1px, 0);
+}
+
+.home-icon {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.trailhead-button:hover .home-icon {
+  transform: scale(1.1);
+}
+
+/* ==========================================================================
+   7. Atmospheric Snowfall
+   ========================================================================== */
+.snowflakes-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.snowflake {
+  position: absolute;
+  background: var(--white);
+  border-radius: 50%;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes fall {
+  0% {
+    transform: translate3d(0, -10px, 0);
+  }
+  100% {
+    transform: translate3d(30px, 105vh, 0);
+  }
+}
+
+/* ==========================================================================
+   8. Responsive Ratios & Accessibility Config
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .poster-footer {
+    padding: 2rem;
+  }
+  
+  .footer-title {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .not-found-container {
+    height: auto;
+    min-height: 100vh;
+    justify-content: flex-start;
+  }
+
+  .poster-canvas {
+    padding: 1rem;
+    flex: none;
+    height: auto;
+  }
+
+  .poster-svg {
+    max-height: 55vh;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .text-banner {
+    align-items: center;
+  }
+
+  .footer-title {
+    font-size: 1.8rem;
+  }
+
+  .footer-subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .trailhead-button {
+    padding: 0.8rem 2.2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .poster-svg {
+    max-height: 45vh;
+  }
+
+  .footer-title {
+    font-size: 1.5rem;
+    letter-spacing: -0.8px;
+  }
+
+  .footer-subtitle {
+    font-size: 0.75rem;
+  }
+}
+
+/* Vestibular Motion Accessibility Sensitivity Overrides */
+@media (prefers-reduced-motion: reduce) {
+  .foreground-athlete,
+  .background-athlete,
+  .ski-node,
+  .pole-node,
+  .lens-sheen-group,
+  .cloud-group-1,
+  .cloud-group-2,
+  .snowflake {
+    animation: none !important;
+  }
+
+  .snowflake {
+    display: none;
+  }
+
+  .trailhead-button {
+    transition: none !important;
+  }
+
+  .trailhead-button:hover {
+    transform: none !important;
+  }
+}
