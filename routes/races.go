@@ -15,7 +15,7 @@ import (
 func racesRoutes(e *gin.RouterGroup, client *mongo.Client) {
 	rg := e.Group("/races", authMiddleware())
 
-	rg.GET("/", func(c *gin.Context) {
+	getRacesHandler := func(c *gin.Context) {
 		userId, exists := c.Get("userId")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
@@ -39,7 +39,10 @@ func racesRoutes(e *gin.RouterGroup, client *mongo.Client) {
 			races = append(races, race)
 		}
 		c.JSON(200, races)
-	})
+	}
+
+	rg.GET("/", getRacesHandler)
+	rg.GET("", getRacesHandler)
 
 	rg.POST("/create", func(c *gin.Context) {
 		var race models.CreateRace

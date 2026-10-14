@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Percent Back</string>
+    <string name="title_activity_main">Percent Back</string>
+    <string name="package_name">com.percentback.app</string>
+    <string name="custom_url_scheme">com.percentback.app</string>
+</resources>

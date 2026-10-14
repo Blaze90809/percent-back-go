@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,8 +44,18 @@ func NewRouter() {
 	})
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "https://*.ondigitalocean.app"} // Allow local and DO domains
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "X-Requested-With", "ngrok-skip-browser-warning"}
+	config.AllowOriginFunc = func(origin string) bool {
+		// Allow local development, Android webview, and iOS webview origins
+		if origin == "http://localhost:3000" || origin == "http://localhost" || origin == "https://localhost" || origin == "capacitor://localhost" {
+			return true
+		}
+		// Allow any subdomain on digitalocean.app securely
+		if strings.HasSuffix(origin, ".ondigitalocean.app") && strings.HasPrefix(origin, "https://") {
+			return true
+		}
+		return false
+	}
 	e.Use(cors.New(config))
 
 	// The React build puts assets in a nested 'static' folder. 
