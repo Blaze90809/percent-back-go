@@ -1,0 +1,6 @@
+{
+	"appId": "com.percentback.app",
+	"appName": "Percent Back",
+	"webDir": "build",
+	"packageClassList": []
+}
