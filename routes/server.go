@@ -76,7 +76,9 @@ func NewRouter() {
 		usersRoutes(api, client)
 		loginRoutes(api, client)
 		passwordResetRoutes(api, client)
+		seedingRoutes(api, client)
 	}
+
 
 	e.NoRoute(noCache, func(c *gin.Context) {
 		c.File("./static/index.html")

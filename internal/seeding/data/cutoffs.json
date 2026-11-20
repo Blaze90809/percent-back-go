@@ -1,0 +1,29 @@
+{
+  "birkie_skate": [
+    { "wave": 1, "min_pbe": 0.0, "max_pbe": 38.0 },
+    { "wave": 2, "min_pbe": 38.01, "max_pbe": 49.5 },
+    { "wave": 3, "min_pbe": 49.51, "max_pbe": 59.0 },
+    { "wave": 4, "min_pbe": 59.01, "max_pbe": 69.5 },
+    { "wave": 5, "min_pbe": 69.51, "max_pbe": 82.5 },
+    { "wave": 6, "min_pbe": 82.51, "max_pbe": 100.0 },
+    { "wave": 7, "min_pbe": 100.01, "max_pbe": 125.0 },
+    { "wave": 8, "min_pbe": 125.01, "max_pbe": 180.0 }
+  ],
+  "birkie_classic": [
+    { "wave": 1, "min_pbe": 0.0, "max_pbe": 50.5 },
+    { "wave": 2, "min_pbe": 50.51, "max_pbe": 72.0 },
+    { "wave": 3, "min_pbe": 72.01, "max_pbe": 95.0 },
+    { "wave": 4, "min_pbe": 95.01, "max_pbe": 127.0 },
+    { "wave": 5, "min_pbe": 127.01, "max_pbe": 170.0 }
+  ],
+  "korte_skate": [
+    { "wave": 1, "min_pbe": 0.0, "max_pbe": 60.0 },
+    { "wave": 2, "min_pbe": 60.01, "max_pbe": 82.5 },
+    { "wave": 3, "min_pbe": 82.51, "max_pbe": 115.0 }
+  ],
+  "korte_classic": [
+    { "wave": 1, "min_pbe": 0.0, "max_pbe": 85.5 },
+    { "wave": 2, "min_pbe": 85.51, "max_pbe": 106.5 },
+    { "wave": 3, "min_pbe": 106.51, "max_pbe": 140.0 }
+  ]
+}

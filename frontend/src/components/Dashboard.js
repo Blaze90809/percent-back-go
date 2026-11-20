@@ -21,6 +21,7 @@ const Dashboard = () => {
           <Button color="inherit" component={RouterLink} to="/dashboard/input">Input</Button>
           <Button color="inherit" component={RouterLink} to="/dashboard/table">Table</Button>
           <Button color="inherit" component={RouterLink} to="/dashboard/chart">Chart</Button>
+          <Button color="inherit" component={RouterLink} to="/dashboard/seeding">Wave Seeding</Button>
           <Button color="inherit" onClick={handleLogout}>Logout</Button>
         </Toolbar>
       </AppBar>

@@ -17,3 +17,7 @@ type CreateRace struct {
 	PercentBack  float64            `json:"percentBack" bson:"percentBack"`
 	UserID       primitive.ObjectID `json:"userId" bson:"userId"`
 }
+
+type CalculationOutputView struct {
+	PercentBack float64 `json:"percentBack"`
+}

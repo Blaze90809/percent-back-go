@@ -7,6 +7,7 @@ import PrivateRoute from './components/PrivateRoute';
 import RaceInput from './components/RaceInput';
 import RaceTable from './components/RaceTable';
 import RaceChart from './components/RaceChart';
+import WaveSeeding from './components/WaveSeeding';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import NotFound from './components/NotFound';
@@ -26,6 +27,7 @@ function App() {
           <Route path="input" element={<RaceInput />} />
           <Route path="table" element={<RaceTable />} />
           <Route path="chart" element={<RaceChart />} />
+          <Route path="seeding" element={<WaveSeeding />} />
         </Route>
         <Route path="/" element={<Login />} />
         <Route path="*" element={<NotFound />} />
