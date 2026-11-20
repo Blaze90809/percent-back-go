@@ -8,6 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	defaultMaxLimiterEntries = 10000
+	defaultCleanupInterval   = 10 * time.Minute
+)
+
 var (
 	// GeneralLimiter allows 120 requests per minute with a burst of 60
 	GeneralLimiter = NewIPRateLimiter(2.0, 60.0)
@@ -21,22 +26,66 @@ type limiter struct {
 }
 
 type IPRateLimiter struct {
-	mu    sync.Mutex
-	ips   map[string]*limiter
-	rate  float64 // tokens refilled per second
-	burst float64 // maximum capacity of bucket
+	mu              sync.Mutex
+	ips             map[string]*limiter
+	rate            float64 // tokens refilled per second
+	burst           float64 // maximum capacity of bucket
+	maxEntries      int
+	cleanupInterval time.Duration
 }
 
-// NewIPRateLimiter creates a new thread-safe rate limiter.
+// NewIPRateLimiter creates a new thread-safe rate limiter with a bounded entry map.
 func NewIPRateLimiter(r float64, b float64) *IPRateLimiter {
+	return NewIPRateLimiterWithMaxEntries(r, b, defaultMaxLimiterEntries)
+}
+
+// NewIPRateLimiterWithMaxEntries creates a new thread-safe rate limiter capped at maxEntries distinct IPs.
+func NewIPRateLimiterWithMaxEntries(r float64, b float64, maxEntries int) *IPRateLimiter {
+	if maxEntries <= 0 {
+		maxEntries = defaultMaxLimiterEntries
+	}
 	limiterInstance := &IPRateLimiter{
-		ips:   make(map[string]*limiter),
-		rate:  r,
-		burst: b,
+		ips:             make(map[string]*limiter),
+		rate:            r,
+		burst:           b,
+		maxEntries:      maxEntries,
+		cleanupInterval: defaultCleanupInterval,
 	}
 	// Periodically clean up stale IPs in the background to prevent memory growth
-	go limiterInstance.cleanUpLoop(10 * time.Minute)
+	go limiterInstance.cleanUpLoop(limiterInstance.cleanupInterval)
 	return limiterInstance
+}
+
+// evictIfFull enforces maxEntries while holding l.mu.
+// It first removes stale entries, and if still at capacity, evicts the least recently active entry.
+func (l *IPRateLimiter) evictIfFull(now time.Time) {
+	if len(l.ips) < l.maxEntries {
+		return
+	}
+
+	for ip, lim := range l.ips {
+		if now.Sub(lim.lastRefill) > l.cleanupInterval {
+			delete(l.ips, ip)
+		}
+	}
+
+	if len(l.ips) < l.maxEntries {
+		return
+	}
+
+	var oldestIP string
+	var oldestTime time.Time
+	first := true
+	for ip, lim := range l.ips {
+		if first || lim.lastRefill.Before(oldestTime) {
+			oldestIP = ip
+			oldestTime = lim.lastRefill
+			first = false
+		}
+	}
+	if !first {
+		delete(l.ips, oldestIP)
+	}
 }
 
 func (l *IPRateLimiter) Allow(ip string) bool {
@@ -46,6 +95,7 @@ func (l *IPRateLimiter) Allow(ip string) bool {
 	now := time.Now()
 	lim, exists := l.ips[ip]
 	if !exists {
+		l.evictIfFull(now)
 		// New IP gets burst-1 tokens since they just consumed 1 token
 		l.ips[ip] = &limiter{
 			tokens:     l.burst - 1.0,
